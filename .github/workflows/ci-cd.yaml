@@ -19,10 +19,12 @@ jobs:
         uses: appleboy/scp-action@v0.1.6
         with:
           host: ${{ secrets.VM_HOST }}
+          port: ${{ secrets.VM_PORT }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           source: "airflow_job/flight_booking_dag.py"
           target: "/home/vboxuser/airflow/dags/"
+
 
       # Upload Spark job to S3
       - name: Upload Spark Job to S3
