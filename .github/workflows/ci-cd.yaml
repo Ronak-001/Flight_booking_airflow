@@ -1,0 +1,38 @@
+name: Flight Booking CICD
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+
+jobs:
+  deploy-to-local-airflow:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Upload Airflow DAG to VirtualBox VM via SCP
+      - name: Upload Airflow DAG via SCP
+        uses: appleboy/scp-action@v0.1.6
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          source: "airflow_job/flight_booking_dag.py"
+          target: "/home/vboxuser/airflow/dags/"
+
+      # Upload Spark job to S3
+      - name: Upload Spark Job to S3
+        uses: jakejarvis/s3-sync-action@v0.5.1
+        with:
+          args: --acl private
+        env:
+          AWS_S3_BUCKET: flight-airflow-cicd
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ap-south-1
+          SOURCE_DIR: spark_job/
+          DEST_DIR: spark_job/
